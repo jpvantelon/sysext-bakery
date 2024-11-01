@@ -2,8 +2,7 @@ name: Build and release Systemd sysext images
 on:
   push:
     tags:
-      - 'latest'
-
+      - '202[4-9].[0-1][0-9].[0-3][0-9].[0-9]+'
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -37,12 +36,12 @@ jobs:
       - name: build release artifacts
         run: |
           pushd bakery
-          REPO=${{ github.repository }} ./release_build.sh
+          REPO=${{ github.repository }} ./tag_build.sh
 
-      - name: create a new latest release with some artifacts
+      - name: create a new release with some artifacts
         uses: softprops/action-gh-release@v2
         with:
-          make_latest: true
+          make_latest: false
           body_path: bakery/Release.md
           files: |
             bakery/SHA256SUMS
