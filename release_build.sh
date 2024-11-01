@@ -10,6 +10,8 @@ set -euo pipefail
 
 : ${REPO:=jpvantelon/sysext-bakery-docker}
 
+BUILD_ARCH="x86-64"
+
 echo
 echo "Fetching previous 'latest' release sysexts"
 echo "=========================================="
@@ -36,30 +38,39 @@ mapfile -t images < <( awk '{ content=sub("[[:space:]]*#.*", ""); if ($0) print 
 echo "building: ${images[@]}"
 
 echo "# Release $(date '+%Y-%m-%d %R')" > Release.md
-echo "The release adds the following sysexts:" >> Release.md
 
-for image in "${images[@]}"; do
-  component="${image%-*}"
-  version="${image#*-}"
-  for arch in x86-64; do
-    target="${image}-${arch}.raw"
-    if [ -f "${target}" ] ; then
-        echo "  ## Skipping ${target} because it already exists (asset from previous release)"
-        continue
+if [[ ${#images[@]} -gt 0 ]]; then
+  images_to_build=()
+  for image in "${images[@]}"; do
+    component="${image%-*}"
+    target="${image}-${BUILD_ARCH}.raw"
+    if ! [ -f "${target}" ] ; then
+        images_to_build+=("${image}")
     fi
-    echo "  ## Building ${target}."
-    ARCH="${arch}" "./create_${component}_sysext.sh" "${version}" "${component}"
-    mv "${component}.raw" "${target}"
-    echo "* ${target}" >> Release.md
+    streams+=("${component}:-@v")
   done
-  streams+=("${component}:-@v")
-  if [ "${component}" = "kubernetes" ] || [ "${component}" = "crio" ]; then
-    streams+=("${component}-${version%.*}:.@v")
-    # Should give, e.g., v1.28 for v1.28.2 (use ${version#*.*.} to get 2)
+
+  if [[ ${#images_to_build[@]} -gt 0 ]]; then
+    echo "The release adds the following sysexts:" >> Release.md
+
+    for image in "${images_to_build[@]}"; do
+      component="${image%-*}"
+      version="${image#*-}"
+      target="${image}-${BUILD_ARCH}.raw"
+      if [ -f "${target}" ] ; then
+          echo "  ## Skipping ${target} because it already exists (asset from previous release)"
+          continue
+      fi
+      echo "  ## Building ${target}."
+      ARCH="${BUILD_ARCH}" "./create_${component}_sysext.sh" "${version}" "${component}"
+      mv "${component}.raw" "${target}"
+      echo "* ${target}" >> Release.md
+    done
+      
+    echo "" >> Release.md
   fi
-done
-  
-echo "" >> Release.md
+fi
+
 echo "The release includes the following sysexts from previous releases:" >> Release.md
 awk '{ print "* ["$1"]("$2")" }' prev_release_sysexts.txt >>Release.md
 

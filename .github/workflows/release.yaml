@@ -39,6 +39,15 @@ jobs:
           pushd bakery
           REPO=${{ github.repository }} ./release_build.sh
 
+      - name: delete existing latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pushd bakery \
+          && gh repo set-default ${{ github.repository }} \
+          && gh release list --json tagName --jq '.[] | select(.tagName=="latest")' \
+          && gh release delete 'latest'
+
       - name: create a new latest release with some artifacts
         uses: softprops/action-gh-release@v2
         with:

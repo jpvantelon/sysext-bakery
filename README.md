@@ -355,6 +355,6 @@ CI can be kicked-off by overriding the `latest` tag. The `latest` release artifa
 git checkout main
 git pull --ff-only
 git tag -d latest
-git tag -as latest
+git tag latest
 git push origin --force latest
 ```

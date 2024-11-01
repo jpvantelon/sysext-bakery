@@ -45,29 +45,5 @@ jobs:
           body_path: bakery/Release.md
           files: |
             bakery/SHA256SUMS
-            bakery/!(kubernetes|crio|ollama)*.raw
+            bakery/*.raw
             bakery/*.conf
-
-      - name: upload kubernetes x86-64 artifacts
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            bakery/kubernetes*-x86-64.raw
-
-      - name: upload kubernetes arm64 artifacts
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            bakery/kubernetes*-arm64.raw
-
-      - name: upload crio artifacts
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            bakery/crio*.raw
-
-      - name: upload ollama artifacts
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            bakery/ollama*.raw
